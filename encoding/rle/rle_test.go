@@ -12,7 +12,9 @@ package rle
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/parquet-go/parquet-go/encoding/fuzz"
@@ -46,6 +48,18 @@ func TestBooleanRunValueIsZeroOrOne(t *testing.T) {
 	}
 	if zeros[len(zeros)-1] != 0 {
 		t.Fatalf("zero run value = %#x, want 0", zeros[len(zeros)-1])
+	}
+}
+
+func TestDecodeBooleanRefusesARunWithoutItsValue(t *testing.T) {
+	enc := &Encoding{BitWidth: 1}
+	payload := appendUvarint(nil, uint64(8)<<1)
+	_, err := enc.DecodeBoolean(nil, booleanPayload(payload))
+	if err == nil {
+		t.Fatal("a run without its value byte decoded without an error")
+	}
+	if !errors.Is(err, io.ErrUnexpectedEOF) {
+		t.Fatalf("err = %v", err)
 	}
 }
 

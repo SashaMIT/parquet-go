@@ -280,11 +280,11 @@ func decodeBits(dst, src []byte) ([]byte, error) {
 			nbits += nbytes * 8
 			i = j
 		} else {
-			word := byte(0)
-			if i < len(src) {
-				word = src[i]
-				i++
+			if i >= len(src) {
+				return dst, fmt.Errorf("decoding run-length block of %d values: no value byte: %w", count, io.ErrUnexpectedEOF)
 			}
+			word := src[i]
+			i++
 
 			// Any non-zero byte is true, so a spec value of 1 and the 0xFF
 			// this encoder used to write both fill the run.
